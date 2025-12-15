@@ -1,0 +1,7 @@
+.headerContainer{
+  height: 30%;
+  background: #3b82F6;
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+}

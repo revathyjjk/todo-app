@@ -1,0 +1,28 @@
+.searchContainer {
+  /* position: relative; */
+  display: flex;
+  width: 500px;
+  padding: 1px;
+  border: 1px solid #3b82f6;
+  box-sizing: border-box;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 4px 12px; /* left padding so text doesn’t overlap icon */
+  border: none;
+  outline: none;
+   color: #3b82f6;
+}
+
+.searchIcon {
+  /* position: absolute; */
+  margin-right: 18px;
+  margin-top: 7px;
+  /* top: 50%; */
+  /* transform: translateY(-50%); */
+  pointer-events: none; /* clicks go to input */
+  font-size: 18px;
+  color: #3b82f6;
+  /* padding-top: 3px; */
+}

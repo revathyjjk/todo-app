@@ -1,0 +1,17 @@
+.toggleButton {
+  background-color: #3B82F6;
+  color: white;
+  width: 36px;          /* w-9 */
+  height: 36px;         /* h-9 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggleButton:hover {
+  background-color: #2563EB;
+}

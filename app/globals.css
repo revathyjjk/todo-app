@@ -1,10 +1,24 @@
 @import "tailwindcss";
-
+/* Custom header styles */
+.header{
+  height: 30%;
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+  font-weight: bold;
+}
+.sub-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;   
+  gap: 12px;                 
+  margin-top: 20px;
+}
+/* Light theme */
 :root {
   --background: #ffffff;
   --foreground: #171717;
 }
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -18,9 +32,20 @@
     --foreground: #ededed;
   }
 }
-
+/* Dark theme (applies when .dark is added to html element) */
+.dark {
+  --background: #0A0A0A;
+  --foreground: #EDEDED;
+}
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
+
+
+
+

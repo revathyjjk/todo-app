@@ -1,0 +1,32 @@
+.addButton {
+  position: fixed;
+  bottom: 32px;
+  right: 400px;
+
+  width: 56px;
+  height: 56px;
+
+  border-radius: 50%;
+  background-color: #6366F1;
+  color: white;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  cursor: pointer;
+
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.addButton:hover {
+  background-color: #4F46E5;
+  transform: scale(1.05);
+}
+
+.addButton:active {
+  transform: scale(0.95);
+}
