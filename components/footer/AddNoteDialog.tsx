@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import AddNoteButton from "./AddNoteButton";
+import styles from "./AddNoteDialog.module.css";
 
 type Note = {
   id: number;
@@ -35,33 +36,32 @@ export default function AddNoteDialog({
       {/* ➕ Floating Button */}
       <AddNoteButton onClick={() => setOpen(true)} />
 
-      {/* Dialog */}
       {open && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-[#1f1f1f] p-6 rounded-lg w-[300px]">
-            <h2 className="text-lg font-semibold mb-4">Add New Note</h2>
+        <div className={styles.overlay}>
+          <div className={styles.dialog}>
+            <h2 className={styles.title}>NEW NOTE</h2>
 
             <input
               type="text"
-              placeholder="Enter note title..."
+              placeholder="Input your note..."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md mb-4 dark:bg-[#2a2a2a]"
+              className={styles.input}
             />
 
-            <div className="flex justify-end gap-3">
+            <div className={styles.actions}>
               <button
                 onClick={() => setOpen(false)}
-                className="px-4 py-2 text-sm rounded-md border"
+                className={styles.cancel}
               >
-                Cancel
+                CANCEL
               </button>
 
               <button
                 onClick={handleAdd}
-                className="px-4 py-2 text-sm rounded-md bg-indigo-500 text-white"
+                className={styles.apply}
               >
-                Add
+                APPLY
               </button>
             </div>
           </div>

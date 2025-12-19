@@ -45,6 +45,39 @@ body {
   display: flex;
   flex-direction: column;
 }
+/* NOTE ROW */
+.note-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid #e0e7ff;
+}
+
+/* Light mode text */
+.note-text {
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Completed */
+.note-completed {
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+
+/* 🌙 DARK MODE */
+.dark .note-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .note-text {
+  color: #f9fafb;
+}
+
+.dark .note-completed {
+  color: #6b7280;
+}
 
 
 

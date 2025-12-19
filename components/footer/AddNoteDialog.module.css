@@ -1,60 +1,113 @@
+/* Overlay */
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.7);
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  z-index: 100;
+  z-index: 50;
 }
 
+/* Dialog box */
 .dialog {
-  width: 300px;
-  padding: 20px;
-  border-radius: 10px;
+  width: 360px;
+  padding: 28px;
+  border-radius: 16px;
 
-  background: white;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
 }
 
+/* 🌙 Dark mode dialog */
+:global(html.dark) .dialog {
+  background: #2a2a2a;               /* MATCH FIGMA */
+  border: 1px solid #9ca3af;         /* Visible border */
+}
+
+/* Title */
 .title {
   font-size: 18px;
   font-weight: 600;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
+  color: #111827;
 }
 
+:global(html.dark) .title {
+  color: #ffffff;
+}
+
+/* Input */
 .input {
   width: 100%;
-  padding: 8px 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  margin-bottom: 16px;
+  padding: 12px 14px;
+  margin-bottom: 28px;
+
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+
+  font-size: 14px;
+  color: #111827;
+  background: #ffffff;
+  outline: none;
 }
 
+.input::placeholder {
+  color: #9ca3af;
+}
+
+/* 🌙 Dark input */
+:global(html.dark) .input {
+  background: #1f1f1f;
+  border: 1px solid #9ca3af;         /* Stronger border */
+  color: #ffffff;
+}
+
+:global(html.dark) .input::placeholder {
+  color: #9ca3af;
+}
+
+/* Actions */
 .actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
+  justify-content: space-between;
+  align-items: center;
 }
 
+/* Cancel button */
 .cancel {
-  padding: 6px 14px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  background: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+
+  border: 1px solid #6366f1;
+  background: transparent;
+  color: #6366f1;
+
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
 }
 
-.add {
-  padding: 6px 14px;
-  border-radius: 6px;
+.cancel:hover {
+  background: rgba(99, 102, 241, 0.12);
+}
+
+/* Apply button */
+.apply {
+  padding: 10px 20px;
+  border-radius: 8px;
+
   border: none;
   background: #6366f1;
   color: white;
+
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
 }
 
-.add:hover {
+.apply:hover {
   background: #4f46e5;
 }
