@@ -2,36 +2,40 @@
 
 import { useState } from "react";
 import { FaAngleDown } from "react-icons/fa";
-import styles from "./dropdown.module.css"
+import styles from "./dropdown.module.css";
 
-const options = ["All", "Todo", "Done"];
+type Filter = "All" | "Todo" | "Done";
 
-export default function Dropdown() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState<string | null>(null);
+type DropdownProps = {
+  value: Filter;
+  onChange: (value: Filter) => void;
+};
 
-  const handleSelect = (option: string) => {
-    setSelected(option);
-    setIsOpen(false);
-  };
+const options: Filter[] = ["All", "Todo", "Done"];
+
+export default function Dropdown({ value, onChange }: DropdownProps) {
+  const [open, setOpen] = useState(false);
 
   return (
     <div className={styles.dropdown}>
       <button
-        onClick={() => setIsOpen(prev => !prev)}
         className={styles.dropdownButton}
+        onClick={() => setOpen((prev) => !prev)}
       >
-        {selected ?? "All"}
+        {value}
         <FaAngleDown className={styles.icon} />
       </button>
 
-      {isOpen && (
+      {open && (
         <div className={styles.dropdownMenu}>
-          {options.map(option => (
+          {options.map((option) => (
             <button
               key={option}
-              onClick={() => handleSelect(option)}
               className={styles.menuItem}
+              onClick={() => {
+                onChange(option);
+                setOpen(false); // ✅ close after selection
+              }}
             >
               {option}
             </button>
