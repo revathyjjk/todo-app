@@ -1,7 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
+
+import { apiRequest } from "@/lib/api";
 
 import Header from "@/components/header/header";
 import Search from "@/components/Search/search";
@@ -23,25 +26,64 @@ type Note = {
 type Filter = "All" | "Todo" | "Done";
 
 export default function Home() {
+  const router = useRouter();
+
   const [notes, setNotes] = useState<Note[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
 
-  // ✅ SINGLE search state
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState<Filter>("All");
 
-  /* ➕ Add note */
-  const handleAddNote = (note: Note) => {
-    setNotes((prev) => [...prev, note]);
+  /* 🔐 Protect page + Load notes */
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    const fetchNotes = async () => {
+      try {
+        const data = await apiRequest("/notes");
+        setNotes(data);
+      } catch (error) {
+        console.error("Failed to load notes", error);
+      }
+    };
+
+    fetchNotes();
+  }, [router]);
+
+  /* ➕ Add note → Backend */
+  const handleAddNote = async (note: Note) => {
+    try {
+      const newNote = await apiRequest("/notes", {
+        method: "POST",
+        body: JSON.stringify(note),
+      });
+
+      setNotes((prev) => [...prev, newNote]);
+    } catch (error) {
+      console.error("Failed to add note", error);
+    }
   };
 
-  /* ❌ Delete note */
-  const handleDelete = (id: number) => {
-    setNotes((prev) => prev.filter((n) => n.id !== id));
+  /* ❌ Delete note → Backend */
+  const handleDelete = async (id: number) => {
+    try {
+      await apiRequest(`/notes/${id}`, {
+        method: "DELETE",
+      });
+
+      setNotes((prev) => prev.filter((n) => n.id !== id));
+    } catch (error) {
+      console.error("Failed to delete note", error);
+    }
   };
 
-  /* ✏️ Save edit */
+  /* ✏️ Edit note (frontend only for now) */
   const handleEditSave = (id: number) => {
     setNotes((prev) =>
       prev.map((n) =>
@@ -51,20 +93,19 @@ export default function Home() {
     setEditingId(null);
   };
 
-  /* 🔍 FILTER + SEARCH LOGIC */
- const filteredNotes = notes.filter((note) => {
-  if (filter === "Todo" && note.completed) return false;
-  if (filter === "Done" && !note.completed) return false;
+  /* 🔍 Filter + Search */
+  const filteredNotes = notes.filter((note) => {
+    if (filter === "Todo" && note.completed) return false;
+    if (filter === "Done" && !note.completed) return false;
 
-  if (searchText.trim() !== "") {
-    return note.title
-      .toLowerCase()
-      .includes(searchText.toLowerCase());
-  }
+    if (searchText.trim() !== "") {
+      return note.title
+        .toLowerCase()
+        .includes(searchText.toLowerCase());
+    }
 
-  return true;
-});
-
+    return true;
+  });
 
   return (
     <div>
@@ -75,23 +116,20 @@ export default function Home() {
       </div>
 
       <div className="sub-header">
-        {/* 🔍 Search (click icon triggers search) */}
         <Search onSearch={setSearchText} />
 
-        {/* ⬇️ Dropdown */}
         <Dropdown
           value={filter}
           onChange={(value: Filter) => {
             setFilter(value);
-            setSearchText(""); // ✅ clear search when filter changes
+            setSearchText("");
           }}
         />
 
-        {/* 🌙 Theme */}
         <ThemeToggle />
       </div>
 
-      {/* 📝 Notes / Empty State */}
+      {/* 📝 Notes */}
       <div
         style={{
           maxWidth: "720px",
@@ -116,7 +154,6 @@ export default function Home() {
         ) : (
           filteredNotes.map((note) => (
             <div key={note.id} className="note-row">
-              {/* Checkbox */}
               <input
                 type="checkbox"
                 className="note-checkbox"
@@ -132,7 +169,6 @@ export default function Home() {
                 }
               />
 
-              {/* Text / Edit */}
               {editingId === note.id ? (
                 <input
                   className="note-edit-input"
@@ -156,7 +192,6 @@ export default function Home() {
                 </span>
               )}
 
-              {/* Actions */}
               <div className="note-actions">
                 <MdOutlineEdit
                   className="note-icon"
@@ -176,7 +211,6 @@ export default function Home() {
         )}
       </div>
 
-      {/* ➕ Add Note */}
       <AddNoteDialog onAddNote={handleAddNote} />
     </div>
   );
