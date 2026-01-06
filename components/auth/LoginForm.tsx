@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiRequest } from "@/lib/api";
 import styles from "./auth.module.css";
+import Link from "next/link";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -54,6 +55,13 @@ export default function LoginForm() {
       <button className={styles.button} type="submit">
         Login
       </button>
+
+      <p className={styles.registerText}>
+        Don&apos;t have an account?{" "}
+        <Link href="/register" className={styles.registerLink}>
+          Register
+        </Link>
+      </p>
     </form>
   );
 }

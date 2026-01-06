@@ -46,7 +46,7 @@ export default function Home() {
 
     const fetchNotes = async () => {
       try {
-        const data = await apiRequest("/notes");
+        const data = await apiRequest("/api/notes");
         setNotes(data);
       } catch (error) {
         console.error("Failed to load notes", error);
@@ -59,7 +59,7 @@ export default function Home() {
   /* ➕ Add note → Backend */
   const handleAddNote = async (note: Note) => {
     try {
-      const newNote = await apiRequest("/notes", {
+      const newNote = await apiRequest("/api/notes", {
         method: "POST",
         body: JSON.stringify(note),
       });
@@ -73,7 +73,7 @@ export default function Home() {
   /* ❌ Delete note → Backend */
   const handleDelete = async (id: number) => {
     try {
-      await apiRequest(`/notes/${id}`, {
+      await apiRequest(`/api/notes/${id}`, {
         method: "DELETE",
       });
 

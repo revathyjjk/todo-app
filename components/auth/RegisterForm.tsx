@@ -2,37 +2,53 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { apiRequest } from "@/lib/api";
 import styles from "./auth.module.css";
 
-export default function RegistrationForm() {
+export default function RegisterForm() {
   const router = useRouter();
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [code, setCode] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
-      const data = await apiRequest("/auth/register", {
+      await apiRequest("/auth/register", {
         method: "POST",
-        body: JSON.stringify({ email, password, code }),
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+        }),
       });
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      router.push("/");
+      alert("Registration successful. Please login.");
+      router.push("/login");
     } catch (error: any) {
       alert(error.message || "Registration failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <form className={styles.card} onSubmit={handleRegister}>
       <h2 className={styles.title}>Register</h2>
+
+      <input
+        type="text"
+        placeholder="Name"
+        className={styles.input}
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        required
+      />
 
       <input
         type="email"
@@ -52,18 +68,16 @@ export default function RegistrationForm() {
         required
       />
 
-      <input
-        type="text"
-        placeholder="Registration Code"
-        className={styles.input}
-        value={code}
-        onChange={(e) => setCode(e.target.value)}
-        required
-      />
-
-      <button className={styles.button} type="submit">
-        Register
+      <button className={styles.button} type="submit" disabled={loading}>
+        {loading ? "Creating account..." : "Register"}
       </button>
+
+      <p className={styles.registerText}>
+        Already have an account?{" "}
+        <Link href="/login" className={styles.registerLink}>
+          Login
+        </Link>
+      </p>
     </form>
   );
 }
