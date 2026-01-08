@@ -1,7 +1,39 @@
-.headerContainer{
-  height: 30%;
+.headerContainer {
   background: #3b82F6;
-  padding: 1rem;
+  padding: 1rem 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+}
+
+/* center title */
+.headerCenter {
+  justify-self: center;
+}
+
+.headerTitle {
+  margin: 0;
+  color: white;
+}
+
+/* right side */
+.headerRight {
+  justify-self: end;
   display: flex;
-  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.userName {
+  color: white;
+}
+
+.logoutButton {
+  padding: 0.4rem 0.9rem;
+  border-radius: 9999px;
+  border: none;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
 }

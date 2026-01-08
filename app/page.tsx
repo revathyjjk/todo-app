@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -17,8 +18,9 @@ import { RiDeleteBin6Line } from "react-icons/ri";
 
 import "@/components/footer/note.css";
 
+// 1. Updated Type to match MongoDB's _id
 type Note = {
-  id: number;
+  _id: string; 
   title: string;
   completed: boolean;
 };
@@ -29,79 +31,121 @@ export default function Home() {
   const router = useRouter();
 
   const [notes, setNotes] = useState<Note[]>([]);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null); // string for _id
   const [editText, setEditText] = useState("");
+const [userEmail, setUserEmail] = useState<string | null>(null);
 
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState<Filter>("All");
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    router.replace("/login");
+  };
+
   /* 🔐 Protect page + Load notes */
   useEffect(() => {
-    const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token");
+console.log("User email:", userEmail);
 
-    if (!token) {
-      router.push("/login");
-      return;
+  if (!token) {
+    router.replace("/login");
+    return;
+  }
+
+  const email = getUserFromToken();
+  setUserEmail(email);
+
+  const fetchNotes = async () => {
+    try {
+      const data = await apiRequest("/notes");
+      setNotes(data);
+    } catch (error) {
+      router.replace("/login");
     }
+  };
 
-    const fetchNotes = async () => {
-      try {
-        const data = await apiRequest("/api/notes");
-        setNotes(data);
-      } catch (error) {
-        console.error("Failed to load notes", error);
-      }
-    };
-
-    fetchNotes();
-  }, [router]);
+  fetchNotes();
+}, [router]);
 
   /* ➕ Add note → Backend */
-  const handleAddNote = async (note: Note) => {
+  const handleAddNote = async (noteData: Partial<Note>) => {
     try {
-      const newNote = await apiRequest("/api/notes", {
+      const newNote = await apiRequest("/notes", {
         method: "POST",
-        body: JSON.stringify(note),
+        body: JSON.stringify({ title: noteData.title }),
       });
 
-      setNotes((prev) => [...prev, newNote]);
+      setNotes((prev) => [newNote, ...prev]);
     } catch (error) {
       console.error("Failed to add note", error);
     }
   };
 
   /* ❌ Delete note → Backend */
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     try {
-      await apiRequest(`/api/notes/${id}`, {
+      await apiRequest(`/notes/${id}`, {
         method: "DELETE",
       });
 
-      setNotes((prev) => prev.filter((n) => n.id !== id));
+      setNotes((prev) => prev.filter((n) => n._id !== id));
     } catch (error) {
       console.error("Failed to delete note", error);
     }
   };
 
-  /* ✏️ Edit note (frontend only for now) */
-  const handleEditSave = (id: number) => {
-    setNotes((prev) =>
-      prev.map((n) =>
-        n.id === id ? { ...n, title: editText } : n
-      )
-    );
-    setEditingId(null);
+  /* ✏️ Edit note → Backend */
+  const handleEditSave = async (id: string) => {
+    try {
+      const updatedNote = await apiRequest(`/notes/${id}`, {
+        method: "PUT",
+        body: JSON.stringify({ title: editText }),
+      });
+
+      setNotes((prev) =>
+        prev.map((n) => (n._id === id ? updatedNote : n))
+      );
+      setEditingId(null);
+    } catch (error) {
+      console.error("Failed to update note", error);
+    }
   };
 
-  /* 🔍 Filter + Search */
+  /* ✅ Toggle Completion → Backend */
+  const handleToggleComplete = async (note: Note) => {
+    try {
+      const updatedNote = await apiRequest(`/notes/${note._id}`, {
+        method: "PUT",
+        body: JSON.stringify({ completed: !note.completed }),
+      });
+
+      setNotes((prev) =>
+        prev.map((n) => (n._id === note._id ? updatedNote : n))
+      );
+    } catch (error) {
+      console.error("Failed to toggle completion", error);
+    }
+  };
+const getUserFromToken = () => {
+  const token = localStorage.getItem("token");
+  if (!token) return null;
+
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.email; // or payload.username
+  } catch {
+    return null;
+  }
+};
+
+  /* 🔍 Filter + Search Logic */
   const filteredNotes = notes.filter((note) => {
     if (filter === "Todo" && note.completed) return false;
     if (filter === "Done" && !note.completed) return false;
 
     if (searchText.trim() !== "") {
-      return note.title
-        .toLowerCase()
-        .includes(searchText.toLowerCase());
+      return note.title.toLowerCase().includes(searchText.toLowerCase());
     }
 
     return true;
@@ -109,7 +153,8 @@ export default function Home() {
 
   return (
     <div>
-      <Header />
+   <Header onLogout={handleLogout} email={userEmail ?? undefined} />
+
 
       <div className="header">
         <h1>TODO LIST</h1>
@@ -117,7 +162,6 @@ export default function Home() {
 
       <div className="sub-header">
         <Search onSearch={setSearchText} />
-
         <Dropdown
           value={filter}
           onChange={(value: Filter) => {
@@ -125,69 +169,38 @@ export default function Home() {
             setSearchText("");
           }}
         />
-
         <ThemeToggle />
       </div>
 
-      {/* 📝 Notes */}
-      <div
-        style={{
-          maxWidth: "720px",
-          margin: "24px auto 0",
-          padding: "0 16px",
-          textAlign: "center",
-        }}
-      >
+      <div className="notes-container">
         {filteredNotes.length === 0 ? (
-          <>
-            <Image
-              src="/empty-notes.svg"
-              alt="No notes"
-              width={280}
-              height={280}
-              priority
-            />
-            <p style={{ marginTop: 12, color: "#888" }}>
-              No notes yet. Add your first note ✨
-            </p>
-          </>
+          <div className="empty-state">
+            <Image src="/empty-notes.svg" alt="No notes" width={280} height={280} priority />
+            <p>No notes yet. Add your first note ✨</p>
+          </div>
         ) : (
           filteredNotes.map((note) => (
-            <div key={note.id} className="note-row">
+            <div key={note._id} className="note-row">
               <input
                 type="checkbox"
                 className="note-checkbox"
                 checked={note.completed}
-                onChange={() =>
-                  setNotes((prev) =>
-                    prev.map((n) =>
-                      n.id === note.id
-                        ? { ...n, completed: !n.completed }
-                        : n
-                    )
-                  )
-                }
+                onChange={() => handleToggleComplete(note)}
               />
 
-              {editingId === note.id ? (
+              {editingId === note._id ? (
                 <input
                   className="note-edit-input"
                   value={editText}
                   autoFocus
                   onChange={(e) => setEditText(e.target.value)}
-                  onBlur={() => handleEditSave(note.id)}
+                  onBlur={() => handleEditSave(note._id)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleEditSave(note.id);
-                    }
+                    if (e.key === "Enter") handleEditSave(note._id);
                   }}
                 />
               ) : (
-                <span
-                  className={`note-text ${
-                    note.completed ? "note-completed" : ""
-                  }`}
-                >
+                <span className={`note-text ${note.completed ? "note-completed" : ""}`}>
                   {note.title}
                 </span>
               )}
@@ -196,14 +209,13 @@ export default function Home() {
                 <MdOutlineEdit
                   className="note-icon"
                   onClick={() => {
-                    setEditingId(note.id);
+                    setEditingId(note._id);
                     setEditText(note.title);
                   }}
                 />
-
                 <RiDeleteBin6Line
                   className="note-icon delete"
-                  onClick={() => handleDelete(note.id)}
+                  onClick={() => handleDelete(note._id)}
                 />
               </div>
             </div>
