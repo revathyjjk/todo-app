@@ -20,7 +20,7 @@ import "@/components/footer/note.css";
 
 // 1. Updated Type to match MongoDB's _id
 type Note = {
-  _id: string; 
+  _id: string;
   title: string;
   completed: boolean;
 };
@@ -33,7 +33,7 @@ export default function Home() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null); // string for _id
   const [editText, setEditText] = useState("");
-const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState<Filter>("All");
@@ -43,30 +43,43 @@ const [userEmail, setUserEmail] = useState<string | null>(null);
     router.replace("/login");
   };
 
-  /* 🔐 Protect page + Load notes */
-  useEffect(() => {
-  const token = localStorage.getItem("token");
-console.log("User email:", userEmail);
+  const getUserFromStorage = () => {
+    const user = localStorage.getItem("user");
+    if (!user) return null;
 
-  if (!token) {
-    router.replace("/login");
-    return;
-  }
-
-  const email = getUserFromToken();
-  setUserEmail(email);
-
-  const fetchNotes = async () => {
     try {
-      const data = await apiRequest("/notes");
-      setNotes(data);
-    } catch (error) {
-      router.replace("/login");
+      return JSON.parse(user).name; // or .email
+    } catch {
+      return null;
     }
   };
 
-  fetchNotes();
-}, [router]);
+
+  /* 🔐 Protect page + Load notes */
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      router.replace("/login");
+      return;
+    }
+
+    const name = getUserFromStorage();
+    setUserEmail(name);
+
+    console.log("User email:", userEmail);
+    const fetchNotes = async () => {
+      try {
+        const data = await apiRequest("/notes");
+        setNotes(data);
+      } catch (error) {
+        router.replace("/login");
+      }
+    };
+
+    fetchNotes();
+  }, [router]);
+
 
   /* ➕ Add note → Backend */
   const handleAddNote = async (noteData: Partial<Note>) => {
@@ -127,17 +140,6 @@ console.log("User email:", userEmail);
       console.error("Failed to toggle completion", error);
     }
   };
-const getUserFromToken = () => {
-  const token = localStorage.getItem("token");
-  if (!token) return null;
-
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload.email; // or payload.username
-  } catch {
-    return null;
-  }
-};
 
   /* 🔍 Filter + Search Logic */
   const filteredNotes = notes.filter((note) => {
@@ -153,74 +155,86 @@ const getUserFromToken = () => {
 
   return (
     <div>
-   <Header onLogout={handleLogout} email={userEmail ?? undefined} />
+      <Header onLogout={handleLogout} email={userEmail ?? undefined} />
 
+      {/* ✅ EVERYTHING that must be centered goes INSIDE .page */}
+      <div className="page">
+        <div className="header">
+          <h1>TODO LIST</h1>
+        </div>
 
-      <div className="header">
-        <h1>TODO LIST</h1>
-      </div>
+        <div className="sub-header">
+          <Search onSearch={setSearchText} />
+          <Dropdown
+            value={filter}
+            onChange={(value: Filter) => {
+              setFilter(value);
+              setSearchText("");
+            }}
+          />
+          <ThemeToggle />
+        </div>
 
-      <div className="sub-header">
-        <Search onSearch={setSearchText} />
-        <Dropdown
-          value={filter}
-          onChange={(value: Filter) => {
-            setFilter(value);
-            setSearchText("");
-          }}
-        />
-        <ThemeToggle />
-      </div>
-
-      <div className="notes-container">
-        {filteredNotes.length === 0 ? (
-          <div className="empty-state">
-            <Image src="/empty-notes.svg" alt="No notes" width={280} height={280} priority />
-            <p>No notes yet. Add your first note ✨</p>
-          </div>
-        ) : (
-          filteredNotes.map((note) => (
-            <div key={note._id} className="note-row">
-              <input
-                type="checkbox"
-                className="note-checkbox"
-                checked={note.completed}
-                onChange={() => handleToggleComplete(note)}
+        {/* ✅ NOTES MUST BE INSIDE .page */}
+        <div className="notes-container">
+          {filteredNotes.length === 0 ? (
+            <div className="empty-state">
+              <Image
+                src="/empty-notes.svg"
+                alt="No notes"
+                width={280}
+                height={280}
+                priority
               />
-
-              {editingId === note._id ? (
-                <input
-                  className="note-edit-input"
-                  value={editText}
-                  autoFocus
-                  onChange={(e) => setEditText(e.target.value)}
-                  onBlur={() => handleEditSave(note._id)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleEditSave(note._id);
-                  }}
-                />
-              ) : (
-                <span className={`note-text ${note.completed ? "note-completed" : ""}`}>
-                  {note.title}
-                </span>
-              )}
-
-              <div className="note-actions">
-                <MdOutlineEdit
-                  className="note-icon"
-                  onClick={() => {
-                    setEditingId(note._id);
-                    setEditText(note.title);
-                  }}
-                />
-                <RiDeleteBin6Line
-                  className="note-icon delete"
-                  onClick={() => handleDelete(note._id)}
-                />
-              </div>
+              <p>No notes yet. Add your first note ✨</p>
             </div>
-          ))
-        )}
+          ) : (
+            filteredNotes.map((note) => (
+              <div key={note._id} className="note-row">
+                <input
+                  type="checkbox"
+                  className="note-checkbox"
+                  checked={note.completed}
+                  onChange={() => handleToggleComplete(note)}
+                />
+
+                {editingId === note._id ? (
+                  <input
+                    className="note-edit-input"
+                    value={editText}
+                    autoFocus
+                    onChange={(e) => setEditText(e.target.value)}
+                    onBlur={() => handleEditSave(note._id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleEditSave(note._id);
+                    }}
+                  />
+                ) : (
+                  <span
+                    className={`note-text ${note.completed ? "note-completed" : ""
+                      }`}
+                  >
+                    {note.title}
+                  </span>
+                )}
+
+                <div className="note-actions">
+                  <MdOutlineEdit
+                    className="note-icon"
+                    onClick={() => {
+                      setEditingId(note._id);
+                      setEditText(note.title);
+                    }}
+                  />
+                  <RiDeleteBin6Line
+                    className="note-icon delete"
+                    onClick={() => handleDelete(note._id)}
+                  />
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       <AddNoteDialog onAddNote={handleAddNote} />
